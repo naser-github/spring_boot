@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+#  proxy:
+#    image: jwilder/nginx-proxy
+#    container_name: dockerized-java-proxy
+#    ports:
+#      - 80:80
+#    volumes:
+#      - /var/run/docker.sock:/tmp/docker.sock
+#      - ./nginx/conf.d:/etc/nginx/conf.d
+#    restart: always
+#    networks:
+#      - paperless-local-network
+
+  mysql:
+    image: mysql:8.4.2
+    container_name: dockerized-java-db
+    restart: unless-stopped
+    ports:
+      - "${DB_EXPOSED_PORT:-6033}:3306"
+    volumes:
+      - dockerized-java-db:/var/lib/mysql
+    command:
+      - "--mysql-native-password=ON"
+      - "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dockerize_java_root}
+      MYSQL_USER: dockerize_java_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-dockerize_java_pass}
+    networks:
+      - dockerized-java-network
+
+  dockerized-java:
+    image: dockerized-java
+    container_name: dockerized-java
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    build:
+      dockerfile: Dockerfile.local
+      context: ./docker
+    ports:
+      - "${DOCKERIZE_JAVA_EXPOSED_PORT:-1080}:8080"
+    working_dir: /opt/app
+    volumes:
+      - ./:/opt/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.m2:/root/.m2
+    command: bash -c "chmod +x scripts/run_local.sh && ./scripts/run_local.sh"
+    networks:
+      - dockerized-java-network
+
+
+networks:
+  dockerized-java-network:
+    driver: bridge
+
+volumes:
+  dockerized-java-db:

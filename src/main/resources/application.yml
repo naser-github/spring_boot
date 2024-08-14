@@ -1,0 +1,69 @@
+server:
+  port: 8080
+spring:
+  config:
+    import: optional:file:.env[.properties]
+    profiles: ${APP_ENVIRONMENT}
+  data:
+    jpa:
+      repositories:
+        enabled: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_HOST}
+    username: ${DATABASE_USER}
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+      poll-interval: 2s
+      quiet-period: 1s
+
+  jpa:
+    database-platform: rg.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        "[dialect.storage_engine]": innodb
+        "[format_sql]": true
+  mvc:
+    throw-exception-if-no-handler-found: true
+    async:
+      request-timeout: 120s
+  web:
+    resources:
+      add-mappings: false
+
+  jackson:
+    time-zone: ${USER_TIMEZONE}
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  flyway:
+    baseline-on-migrate: true
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: ${SQL_LOG_LEVEL}
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        security: ${LOG_LEVEL}
+        web: ${LOG_LEVEL}
+
+jwt:
+  secretKey: ${JWT_SECRET}
